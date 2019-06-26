@@ -1,0 +1,174 @@
+####BCH441
+####PHYLOGENY I.U###
+###Ahir Roy###
+ 
+##sourcing myDB and running all the necessary libraries
+ 
+source("makeProteinDB.R")
+ 
+if (! require(Biostrings, quietly=TRUE)) {
+  if (! exists("biocLite")) {
+    source("https://bioconductor.org/biocLite.R")
+  }
+  biocLite("Biostrings")
+  library(Biostrings)
+}
+ 
+if (! require(msa, quietly=TRUE)) {
+  if (! exists("biocLite")) {
+    source("https://bioconductor.org/biocLite.R")
+  }
+  biocLite("msa")
+  library(msa)
+}
+ 
+if (!require(Rphylip, quietly=TRUE)) {
+  install.packages("Rphylip")
+  library(Rphylip)
+}
+ 
+if (!require(treeio, quietly=TRUE)) {
+  if (! exists("biocLite")) {
+    source("https://bioconductor.org/biocLite.R")
+  }
+  biocLite("treeio")
+  library(treeio)
+}
+ 
+# Align all sequences in the database + KILA_ESSCO
+mySeq <- myDB$protein$sequence
+names(mySeq) <- myDB$protein$name
+mySeq <- c(mySeq,
+           "IDGEIIHLRAKDGYINATSMCRTAGKLLSDYTRLKTTQEFFDELSRDMGIPISELIQSFKGGRPENQGTWVHPDIAINLAQ")
+names(mySeq)[length(mySeq)] <- "KILA_ESCCO"
+ 
+mySeqMSA <- msaClustalOmega(AAStringSet(mySeq)) # too many sequences for MUSCLE
+ 
+ 
+# get SACCE APSES domain seq
+sel <- myDB$protein$name == "MBP1_SACCE"
+proID <- myDB$protein$ID[sel]
+ 
+sel <- myDB$feature$ID[myDB$feature$name == "APSES fold"]
+fanID <- myDB$annotation$ID[myDB$annotation$proteinID == proID &
+                              myDB$annotation$featureID == sel]
+start <- myDB$annotation$start[fanID]
+end   <- myDB$annotation$end[fanID]
+ 
+(SACCEapses <- substring(myDB$protein$sequence[proID], start, end))
+ 
+ 
+# MSA extraction of APSES 
+APSESmsa <- fetchMSAmotif(mySeqMSA, SACCEapses)
+(APSESmsa)
+ 
+(names <-(APSESmsa@ranges@NAMES))
+ 
+# Alignment length
+lenAli <- APSESmsa@ranges@width[1]
+lenAli
+ 
+ 
+# matrix cover
+msaMatrix <- matrix(character(length(APSESmsa@ranges@NAMES) * lenAli),
+                    ncol = lenAli)
+ 
+(rownames(msaMatrix) <- names)
+ 
+for (i in 1:length(APSESmsa)) {
+  msaMatrix[i, ] <- unlist(strsplit(as.character(APSESmsa[i]), ""))
+}
+ 
+# Masking
+colMask <- logical(ncol(msaMatrix))
+limit <- round(length(APSESmsa@ranges@NAMES) * (4/5))
+ 
+colMask
+limit
+ 
+ 
+for (i in 1:ncol(msaMatrix)) {
+  count <- sum(msaMatrix[ , i] == "-")
+  colMask[i] <- count <= limit
+}
+ 
+colMask #inspect again
+ 
+sum(colMask)
+cat(sprintf("Till now %4.2f %% of alignment columns have been masked.\n",
+            100 * (1 - (sum(colMask) / length(colMask)))))
+ 
+ 
+maskedMatrix <- msaMatrix[ , colMask]
+ 
+maskedMatrix
+ 
+ 
+ncol(maskedMatrix) #same as sum(colMask)
+ 
+APSESphylogenMasked <- character()
+for (i in 1:nrow(maskedMatrix)) {
+  APSESphylogenMasked[i] <- paste(maskedMatrix[i, ], collapse="")
+}
+ 
+names(APSESphylogenMasked) <- rownames(maskedMatrix)
+ 
+(names(APSESphylogenMasked))
+ 
+writeALN(APSESphylogenMasked)
+ 
+# aligned + masked + mfa creation.
+writeMFA(APSESphylogenMasked, myCon = "APSESphylogeny.mfa")
+ 
+# Tree building
+PROMLPATH <- "D:/R-3.5.1/library/Rphylip/phylip-3.695/exe"
+APSfile<- read.protein("APSESphylogeny.mfa")
+ 
+APSTree <- Rproml(APSfile, path=PROMLPATH)
+ 
+ 
+ 
+plot(APSTree)
+ 
+ 
+ 
+save(APSTree, file = "APSTreeRproml.RData")
+ 
+load(file = "APSTreeRproml.RData")
+ 
+plot(APSTree, cex = 0.5, root.edge = TRUE, no.margin = TRUE) #rooted APSES tree
+ 
+ 
+write.tree(APSTree)
+ 
+#[1] "(((((((69819_WALME:0.59088,(14426_COPCI:0.37288,02840_CRYNE:0.36487):0.23301):0.1925,((BQT4_SCHPO:0.26826,((01622_ASPNI:0.39653,81480_BIPOR:0.22115):0.12486,06560_NEUCR:0.16975):0.51156):0.41796,PGTG_05590:0.5253):0.10682):0.11562,11055_USTMA:0.44608):1.30656,(68479_WALME:0.356,((03082_PUCGR:0.54415,((SOK2_SACCE:0.07794,PHD1_SACCE:0.11948):0.14458,(STUA_NEUCR:0.069,STUA_ASPNI:0.03034):0.10774):0.11337):0.02816,15042_USTMA:0.19662):0.14356):0.52529):0.07753,(((MBPA_ASPNI:0.15699,8533_BIPOR:0.08199):0.09244,SWI6_NEUCR:0.15993):0.04094,((05338_USTMA:0.29897,(05520_CRYNE:0.28098,((PGTG_02039:0.25846,68476_WALME:0.13033):0.04839,00846_COPCI:0.14362):0.0166):0.04333):0.04929,((((MBP1_WALME:0.19483,(((MBP1_SCHPO:0.17217,SWI4_SACCE:0.74452):0.15221,RES1_SCHPO:0.40441):0.08506,(MBP1_USTMA:0.1619,(MBP1_BIPOR:0.14516,(MBP1_ASPNI:0.0481,(MBP1_SACCE:0.39207,MBP1_NEUCR:0.20946):0.14214):0.05523):0.19685):0.06):0.05503):0.04732,(CDC10_SCHPO:1.30128,MBP1_CRYNE:0.0001):0.0939):0.02581,(MBP1_COPCI:0.06008,(MBP1_GLOTR:0.0001,GLOTRDRAFT_1364429:0.0001):0.07365):0.03373):0.04951,MBP1_PUCGR:0.15225):0.13519):0.07967):0.42728):0.79955,(11943_PUCGR:0.036,(04778_USTMA:0.74773,(XBP1_SACCE:1.22639,((GLOTRDRAFT_44694:0.07712,KILA_ESCCO:1.47031):0.05941,08099_COPCI:0.04077):0.15696):0.11182):0.10869):0.41339):1.11864,(XBP1_NEUCR:0.30277,105954_BIPOR:0.30338):0.14293,05405_ASPNI:0.0001);"
+ 
+ 
+ 
+#loading treeio lib
+if (!require(treeio, quietly=TRUE)) {
+  if (! exists("biocLite")) {
+    source("https://bioconductor.org/biocLite.R")
+  }
+  biocLite("treeio")
+  library(treeio)
+}
+ 
+##Inspired by Thomas Hollis
+ 
+treeText <- readLines("phyliptree.phy")
+treeText <- paste0(treeText, collapse="")
+fungiTree <- read.tree(text = treeText)
+distMat <- cophenetic(fungiTree)
+fungiTree$tip.label <- c(paste("MBP1_", c("BIPOR", "SACCE", "NEUCR", "SCHPO", "ASPNI", "WALME", "PUCGR", "GLOTR", "COPCI", "USTMA", "CRYNE"), sep = ""), "KILA_ESCCO")
+plot(fungiTree) #reference
+ 
+# Create new tree under the correct assumption that the new tree is called "allApsTree"
+sel <- ! (APSTree$tip.label %in% fungiTree$tip.label)
+newTree <- drop.tip(APSTree, APSTree$tip.label[sel])
+ 
+plot(newTree)
+ 
+fungiTree$tip.label <- newTree$tip.label #Solving the tip issue
+ 
+#[END]
