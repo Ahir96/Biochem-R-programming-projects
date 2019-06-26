@@ -1,0 +1,131 @@
+######BCH441
+####Ahir Roy
+###BIN-PPI-Analysis learning unit for evalutation
+ 
+ 
+#   Task for submission  =================================================
+ 
+ 
+# Write a loop that will go through your personalized list of Ensemble IDs and
+#    for each ID:
+#    --  print the ID,
+#    --  print the first row's HGNC symbol,
+#    --  print the first row's wikigene description.
+#    --  print the first row's phenotype.
+#
+ 
+if (!require(biomaRt, quietly=TRUE)) {
+  if (! exists("biocLite")) {
+    source("https://bioconductor.org/biocLite.R")
+  }
+  biocLite("biomaRt")
+  library(biomaRt)
+}
+ 
+set.seed(1002062616) # enter your student number here
+(ENSPsel <- sample(ENSPsel))
+ 
+myMart <- useMart("ensembl", dataset="hsapiens_gene_ensembl")
+ 
+(filters <- listFilters(myMart)) #List of filters defined
+ 
+ 
+(attributes <- listAttributes(myMart)) #Defined attributes
+ 
+filters[grep("ENSP", filters$description), ] #specific attributes
+ 
+# ... and the correct attribute names for gene symbols and descriptions ...
+attributes[grep("symbol", attributes$description, ignore.case=TRUE), ]
+attributes[grep("description", attributes$description, ignore.case=TRUE), ]
+ 
+CPdefs <- list()
+ 
+for (ID in ENSPsel) {
+  CPdefs[[ID]] <- getBM(filters = "ensembl_peptide_id",
+                        attributes = c("hgnc_symbol",
+                                       "wikigene_description",
+                                       "interpro_description",
+                                       "phenotype_description"),
+                        values = ID,
+                        mart = myMart)
+ 
+  symbl <- CPdefs[[ID]]['hgnc_symbol'][1,1]
+  wikidsc <- CPdefs[[ID]]['wikigene_description'][1,1]
+  interdsc <- CPdefs[[ID]]['interpro_description'][1,1]
+  phenodsc <- CPdefs[[ID]]['phenotype_description'][1,1]
+ 
+  cat("ID is:", ID, "\n",
+      "HGNC symbol:", symbl, "\n",
+      "Wikigene description:", wikidsc, "\n",
+      "Interpro description:", interdsc, "\n",
+      "Phenotype description:", phenodsc, "\n \n")
+ 
+ 
+}
+
+
+######RESULT########
+
+
+
+ID is: ENSP00000269305 
+ HGNC symbol: TP53 
+ Wikigene description: tumor protein p53 
+ Interpro description: p53 tumour suppressor family 
+ Phenotype description: ADRENOCORTICAL CARCINOMA HEREDITARY 
+ 
+ID is: ENSP00000367207 
+ HGNC symbol: MYC 
+ Wikigene description: MYC proto-oncogene, bHLH transcription factor 
+ Interpro description: Transcription regulator Myc 
+ Phenotype description: BURKITT LYMPHOMA 
+ 
+ID is: ENSP00000344818 
+ HGNC symbol: UBC 
+ Wikigene description: ubiquitin C 
+ Interpro description: Ubiquitin domain 
+ Phenotype description: NA 
+ 
+ID is: ENSP00000275493 
+ HGNC symbol: EGFR 
+ Wikigene description: epidermal growth factor receptor 
+ Interpro description: Receptor L-domain 
+ Phenotype description: INFLAMMATORY SKIN AND BOWEL DISEASE NEONATAL 2 
+ 
+ID is: ENSP00000360525 
+ HGNC symbol: MAGOH 
+ Wikigene description: mago homolog, exon junction complex subunit 
+ Interpro description: Mago nashi protein 
+ Phenotype description: NA 
+ 
+ID is: ENSP00000350941 
+ HGNC symbol: SRC 
+ Wikigene description: SRC proto-oncogene, non-receptor tyrosine kinase 
+ Interpro description: Protein kinase domain 
+ Phenotype description: Colorectal Cancer 
+ 
+ID is: ENSP00000360266 
+ HGNC symbol: JUN 
+ Wikigene description: Jun proto-oncogene, AP-1 transcription factor subunit 
+ Interpro description: Transcription factor Jun 
+ Phenotype description: NA 
+ 
+ID is: ENSP00000270202 
+ HGNC symbol: AKT1 
+ Wikigene description: AKT serine/threonine kinase 1 
+ Interpro description: Protein kinase domain 
+ Phenotype description: Breast Cancer 
+ 
+ID is: ENSP00000335153 
+ HGNC symbol: HSP90AA1 
+ Wikigene description: heat shock protein 90 alpha family class A member 1 
+ Interpro description: Heat shock protein Hsp90 family 
+ Phenotype description: NA 
+ 
+ID is: ENSP00000344456 
+ HGNC symbol: CTNNB1 
+ Wikigene description: catenin beta 1 
+ Interpro description: Armadillo 
+ Phenotype description: Colorectal Cancer 
+ 
+>
