@@ -1,0 +1,138 @@
+#BIN_storingdata 1/2 Task
+# ==   1.3  Task: submit for credit (part 1/2)  ================================
+ 
+ 
+#    Write and submit code that adds another philosopher to the datamodel:
+ #       Immanuel Kant, (1724 - 1804), Enlightenment Philosophy.
+ #       Works: Critique of Pure Reason (1781), Critique of Judgement (1790)
+ #    Write and submit code that lists the books in alphabetical order,
+ #    followed by the author and the year of publishing. Format your output like:
+ #    "Analects" - Kongzi (220 BCE)
+ #    Show the result.
+ 
+a <- data.frame(id=autoincrement(philDB$person),
+                name = "Immanuel Kant",
+                born = "1724",
+                died = "1804",
+                school = "Enlightenment Philosophy",
+                stringsAsFactors = FALSE)
+philDB$person <- rbind(philDB$person, a)
+ 
+b <- data.frame(id = 6:7,
+                title = c("Critique of Pure Reason",
+                          "Critique of Judgement"),
+                published = c("1781",
+                              "1790"),
+                stringsAsFactors = FALSE)
+philDB$books <- rbind(philDB$books, b)
+ 
+c <- data.frame(id = 6:7,
+                personID = c(5,5),
+                bookID = c(6,7),
+                stringsAsFactors = FALSE)
+philDB$works <- rbind(philDB$works, c)
+ 
+#    Write and submit code that lists the books in alphabetical order,
+#    followed by the author and the year of publishing. Format your output like:
+#    "Analects" - Kongzi (220 BCE)
+#    Show the result.
+ 
+(sel <- order(philDB$books$title))
+ 
+(bID <- philDB$books$id[sel])
+ 
+(pID <- philDB$works$personID[sel])
+ 
+sel <- numeric()
+for (ID in bID){
+  sel <- which(philDB$works$bookID == ID)
+  cat(sprintf("\"%s\" ", philDB$books$title[ID]))
+  cat(sprintf("- %s ",philDB$person$name[philDB$works$personID[bookID=ID]]))
+  cat(sprintf("(%s)", philDB$books$published[philDB$books$id[bookID=ID]]))
+  cat("\n")
+}
+ 
+#[END]
+ 
+#Results copy pasted from R console
+ 
+> sel <- numeric()
+> for (ID in bID){
++   sel <- which(philDB$works$bookID == ID)
++   cat(sprintf("\"%s\" ", philDB$books$title[ID]))
++   cat(sprintf("- %s ",philDB$person$name[philDB$works$personID[bookID=ID]]))
++   cat(sprintf("(%s)", philDB$books$published[philDB$books$id[bookID=ID]]))
++   cat("\n")
++ }
+"Analects" - Immanuel Kant (220 BCE)
+"Being and Time" - Martin Heidegger (1927)
+"Critique of Judgement" - NA (1790)
+"Critique of Pure Reason" - NA (1781)
+"Daodejing" - Laozi (530 BCE)
+"On the Way to Language" - Martin Heidegger (1959)
+"Zhuangzi" - Kongzi (300 BCE)
+ 
+ 
+ 
+ 
+# [END]
+
+
+
+My Species Name: Gloeophyllum trabeum
+
+E-value: 2e-33 NCBI
+
+BiCode: "GLOTR"
+
+# ==   3.4  Task: submit for credit (part 2/2)  ================================
+# - On your submission page, note the E-value of your protein and link
+#     to its NCBI protein database page.
+# - Copy and paste the contents of your two JSON files on your submission
+#     page on the Student Wiki
+# - Execute the two commands below and show the result on your submission page
+ 
+#MBP1_GLOTR.json
+[
+  { "name" : "MBP1_GLOTR",
+    "RefSeqID" : "XP_007862551",
+    "UniProtID" : "S7QJT3",
+    "taxonomyID" : 670483,
+    "sequence" : [
+       "MAGENTIFKATYSGIPVYEMMCKGVAVMRRRSDSWLNATQILKVVGFDKP ",
+       "QRTRILEREVQKGEHEKVQGGYGKYQGTWIPLERGLELCRQYGCEQVLKP ",
+       "IIDFTPAAESPPLAPKHLVAAPGTRPPKKAAADGPGVATRSSRRTAADIP",
+       "DDESDDDSLSVRGSEDGTLTPSPSEGSSSSRTPSPIGSPGPSDALSDIGE",
+       "DGYRKNGRPRKRRRSVEPPDDDMDVDGQTSNSSRYAEQILEYFISDTNQI",
+       "PKCLIEPPPDFDPNVVIDDDSHTPLHWAAAMGRLRIVKLLLTAGADLYRV ",
+       "NNSGQTALMRSVMFANNYDVRKFKELCELLHPCTLHIDNANRTVFHHIVD",
+       "VAMSKGKTHAARYYMETILERLAEYPSELVDILNFQDEDGETALTLAARC",
+       "RSKRLVKLLIDHGANPKIRNKDGKSAEDYIVEDERFRRSPGLPSKSLSMS ",
+       "FRNAAAAYPPATAGPGYAFAPANGDRAPLHYSVAAQRASTRCINEVTTMLK",
+       "DSLAQSFDQELQEKERDMNQASALLTSMQQEILESQRAVSHLKGQANTLN",
+       "YSKEGLQELEQELISKMGKRYRLGWEKWVKDEEDREKAIRDAAGGQLHIP",
+       "SQNFSFHPDEPMNGPEASPEKGERKGKRKAPTQPEDISDLVALHSDIPAD",
+       "PNALHRACEVLREDLERHRKRRRELFEEFAKHQEEAGTEGKMAEYRRLIS",
+       "IGCGGIPPQEVDSVLPSLLEALEAEEPSSSTPWSAPAGPSR"]
+  }
+]
+ 
+#END
+ 
+#MYSPETaxonomy.json
+ 
+[
+  { "ID" : 670483,
+    "species" : "Gloeophyllum trabeum ATCC 11539"}
+]
+#END
+ 
+# Execute the two commands below and show the result on your submission page
+> biCode(myDB$taxonomy$species) %in% biCode(MYSPE)
+ [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE
+> myDB$protein$taxonomyID %in% myDB$taxonomy$ID[(myDB$taxonomy$species == MYSPE)]
+ [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+[19] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+[37] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE
+ 
+#END
